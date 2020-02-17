@@ -1,0 +1,28 @@
+{
+  "name": "exchangeratesbot",
+  "version": "0.0.1",
+  "description": "telegram bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index",
+    "dev": "nodemon index"
+  },
+  "keywords": [
+    "exchange",
+    "bot",
+    "telegram",
+    "rate",
+    "dollars",
+    "euro",
+    "tenge"
+  ],
+  "author": "Fuka",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "node-schedule-tz": "^1.2.1-4",
+    "request": "^2.88.2",
+    "telegraf": "^3.36.0",
+    "xml-js": "^1.6.11"
+  }
+}
