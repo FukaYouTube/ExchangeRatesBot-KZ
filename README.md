@@ -1,4 +1,4 @@
-# ExchangeRatesBot-KZ (Курс валют руб/евро/доллор соотношение к тенге) 🇰🇿
+# ExchangeRatesBot-KZ (Курс валют руб/евро/доллар соотношение к тенге) 🇰🇿
 JavaScript, Node.js  
 Developer: FukaChanYT :: [VK](https://vk.com/programmer_nodejs), [Telegram](https://t.me/FukaChanYT)  
 
