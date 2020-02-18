@@ -1,0 +1,18 @@
+{
+    "welcome": "🐾 *Welcome!* This bot will allow you to see the exchange rates to tenge (⚠️ ratio to other currencies DOES NOT WORK!) \nSelect currencies below:",
+    "ex-message": ["*Currency type:*", "*Update date:*", "*Tenge ratio:*", "*Currency development:*"],
+
+    "settings": {
+        "msg": "Settings: (🔴 - Does not work)",
+        "button": [
+            ["Interface language"],
+            ["🔴 Enable or disable notification"]
+        ]
+    },
+
+    "lang-settings": {
+        "msg": "Выберите язык / Тілді таңдаңыз / Choose language",
+        "button": ["🇷🇺 Русский язык", "🇰🇿 Қазақ тілі", "🇺🇸 English language"],
+        "success-edit-lang": "✅ Selected!"
+    }
+}
