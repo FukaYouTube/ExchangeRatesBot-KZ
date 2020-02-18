@@ -24,6 +24,7 @@ const {
 } = require('telegraf/markup')
 
 const service = require('./service')
+const router = require('./router')
 
 const urlAPI = `http://www.nationalbank.kz/rss/rates.xml`
 
@@ -103,6 +104,8 @@ app.action('view-usd', async ctx => {
     })
 })
 
+app.use(router.calculator)
+
 app.command('settings', ctx => {
     let message = JSON.parse(fs.readFileSync(`source/messages/messages.${ctx.session.lang || 'ru'}.json`))
     ctx.replyWithMarkdown(message['settings'].msg, keyboard(message['settings'].button).oneTime().resize().extra())
@@ -145,7 +148,8 @@ app.action('en-lang', ctx => {
 })
 
 app.help(ctx => {
-    ctx.replyWithMarkdown('/start, /settings, /help')
+    let message = JSON.parse(fs.readFileSync(`source/messages/messages.${ctx.session.lang || 'ru'}.json`))
+    ctx.reply(message['help'])
 })
 
 app.startPolling()
