@@ -8,22 +8,22 @@ require('dotenv').config()
 
 const request = require('request')
 const convert = require('xml-js')
+const fs = require('fs')
 
 // const schedule = require('node-schedule-tz')
 
 const telegraf = require('telegraf')
+const session = require('telegraf/session')
 const app = new telegraf(process.env.BOT_TOKEN)
 
 const {
     inlineKeyboard,
-    callbackButton
+    callbackButton,
+    keyboard,
+    removeKeyboard
 } = require('telegraf/markup')
 
-const {
-    RUB,
-    EUR,
-    USD
-} = require('./service/items')
+const service = require('./service')
 
 const urlAPI = `http://www.nationalbank.kz/rss/rates.xml`
 
@@ -31,13 +31,25 @@ const urlAPI = `http://www.nationalbank.kz/rss/rates.xml`
 //     return null
 // })
 
+app.use(session())
+
 app.start(ctx => {
-    ctx.replyWithMarkdown('🐾 *Добро пожаловать!* Этот бот позволит вам просмотреть курсы валют соотношение к тенге (⚠️ соотношение к дргим валют НЕ РАБОТАЕТ!) \nНиже выберите интересующиеся валюты:', inlineKeyboard([
-        callbackButton('🇷🇺 RUB', 'view-rub'),
-        callbackButton('🇪🇺 EUR', 'view-eur'),
-        callbackButton('🇺🇸 USD', 'view-usd')
+    let message = JSON.parse(fs.readFileSync(`source/messages/messages.${ctx.session.lang || 'ru'}.json`))
+
+    ctx.replyWithMarkdown(message['welcome'], inlineKeyboard([
+        [callbackButton('🇷🇺 RUB', 'view-rub')],
+        [callbackButton('🇪🇺 EUR', 'view-eur')],
+        [callbackButton('🇺🇸 USD', 'view-usd')]
     ]).extra())
 })
+
+function EXmessage(type, ctx) {
+    let message = JSON.parse(fs.readFileSync(`source/messages/messages.${ctx.session.lang || 'ru'}.json`))
+    return message['ex-message'][0] + ' ' + type.title + '\n' +
+        message['ex-message'][1] + ' ' + type.update + '\n' +
+        message['ex-message'][2] + ' ' + type.course + '\n' +
+        message['ex-message'][3] + ' ' + (type['up/down'].level === 'UP' ? '📈' : '📉') + type['up/down'].num + ' ' + '(' + type['up/down'].level + ')'
+}
 
 app.action('view-rub', async ctx => {
     await request(urlAPI, (error, res, body) => {
@@ -50,7 +62,7 @@ app.action('view-rub', async ctx => {
         })
 
         let data = JSON.parse(dataString)
-        ctx.replyWithMarkdown(`*🇷🇺 Тип валюты:* ${RUB(data).title} \n*Дата обновление:* ${RUB(data).update} \n*Рубль соотношение к тенге:* ${RUB(data).course} \n*Развитие валюты:* ${RUB(data)['up/down'].level === 'UP' ? '📈' : '📉'} ${RUB(data)['up/down'].num} (${RUB(data)['up/down'].level})`, inlineKeyboard([
+        ctx.replyWithMarkdown(`🇷🇺` + EXmessage(service.items.RUB(data), ctx), inlineKeyboard([
             callbackButton('🇪🇺 EUR', 'view-eur'),
             callbackButton('🇺🇸 USD', 'view-usd')
         ]).extra())
@@ -67,7 +79,7 @@ app.action('view-eur', async ctx => {
         })
 
         let data = JSON.parse(dataString)
-        ctx.replyWithMarkdown(`*🇪🇺 Тип валюты:* ${EUR(data).title} \n*Дата обновление:* ${EUR(data).update} \n*Евро соотношение к тенге:* ${EUR(data).course} \n*Развитие валюты:* ${EUR(data)['up/down'].level === 'UP' ? '📈' : '📉'} ${EUR(data)['up/down'].num} (${EUR(data)['up/down'].level})`, inlineKeyboard([
+        ctx.replyWithMarkdown(`🇪🇺` + EXmessage(service.items.EUR(data), ctx), inlineKeyboard([
             callbackButton('🇷🇺 RUB', 'view-rub'),
             callbackButton('🇺🇸 USD', 'view-usd')
         ]).extra())
@@ -84,11 +96,56 @@ app.action('view-usd', async ctx => {
         })
 
         let data = JSON.parse(dataString)
-        ctx.replyWithMarkdown(`*🇺🇸 Тип валюты:* ${USD(data).title} \n*Дата обновление:* ${USD(data).update} \n*Доллар соотношение к тенге:* ${USD(data).course} \n*Развитие валюты:* ${USD(data)['up/down'].level === 'UP' ? '📈' : '📉'} ${USD(data)['up/down'].num} (${USD(data)['up/down'].level})`, inlineKeyboard([
+        ctx.replyWithMarkdown(`🇺🇸` + EXmessage(service.items.USD(data), ctx), inlineKeyboard([
             callbackButton('🇷🇺 RUB', 'view-rub'),
             callbackButton('🇪🇺 EUR', 'view-eur')
         ]).extra())
     })
+})
+
+app.command('settings', ctx => {
+    let message = JSON.parse(fs.readFileSync(`source/messages/messages.${ctx.session.lang || 'ru'}.json`))
+    ctx.replyWithMarkdown(message['settings'].msg, keyboard(message['settings'].button).oneTime().resize().extra())
+})
+
+app.hears(/./gm, (ctx, next) => {
+    let message = JSON.parse(fs.readFileSync(`source/messages/messages.${ctx.session.lang || 'ru'}.json`))
+
+    if (ctx.message.text == message['settings'].button[0][0]) {
+        ctx.replyWithMarkdown(message['lang-settings'].msg, inlineKeyboard([
+            [callbackButton(message['lang-settings'].button[0], 'ru-lang')],
+            [callbackButton(message['lang-settings'].button[1], 'kz-lang')],
+            [callbackButton(message['lang-settings'].button[2], 'en-lang')]
+        ]).extra())
+    } else {
+        next()
+    }
+})
+
+app.action('ru-lang', ctx => {
+    let message = JSON.parse(fs.readFileSync(`source/messages/messages.${ctx.session.lang || 'ru'}.json`))
+
+    ctx.deleteMessage()
+    ctx.session.lang = 'ru'
+    ctx.replyWithMarkdown(message['lang-settings']['success-edit-lang'], removeKeyboard().oneTime().resize().extra())
+})
+app.action('kz-lang', ctx => {
+    let message = JSON.parse(fs.readFileSync(`source/messages/messages.${ctx.session.lang || 'ru'}.json`))
+
+    ctx.deleteMessage()
+    ctx.session.lang = 'kz'
+    ctx.replyWithMarkdown(message['lang-settings']['success-edit-lang'], removeKeyboard().oneTime().resize().extra())
+})
+app.action('en-lang', ctx => {
+    let message = JSON.parse(fs.readFileSync(`source/messages/messages.${ctx.session.lang || 'ru'}.json`))
+
+    ctx.deleteMessage()
+    ctx.session.lang = 'en'
+    ctx.replyWithMarkdown(message['lang-settings']['success-edit-lang'], removeKeyboard().oneTime().resize().extra())
+})
+
+app.help(ctx => {
+    ctx.replyWithMarkdown('/start, /settings, /help')
 })
 
 app.startPolling()
