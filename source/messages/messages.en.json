@@ -14,5 +14,7 @@
         "msg": "Выберите язык / Тілді таңдаңыз / Choose language",
         "button": ["🇷🇺 Русский язык", "🇰🇿 Қазақ тілі", "🇺🇸 English language"],
         "success-edit-lang": "✅ Selected!"
-    }
+    },
+
+    "help": "Available teams: \n\n/start - (Re)Starting bot \n/settings - Settings bot \n/help - help \n\nCalculator: \n\n/rub <число> - rub * tenge \n/eur <число> - euro * tenge \n/usd <число> - dollar * tenge"
 }
